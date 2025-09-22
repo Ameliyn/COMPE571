@@ -50,7 +50,6 @@ int main(int argc, char *argv[]){
     }
     
     // Sum the data
-    printf("Joining Threads.\n");
     for(int i=0; i < NUM_THREADS; i++){
         pthread_join(threads[i], NULL);
         sum += thread_data[i][2];
@@ -63,7 +62,5 @@ int main(int argc, char *argv[]){
     // Print results and time
     double time_taken = (end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec) / 1000000000;
     //Print the Results
-    printf("The sum of integers from 1 to %d is: %d\n", N, sum);
-    printf("This operation took %0.5f seconds.\n", time_taken);
-
+    printf("%d %lf\n", sum, time_taken);
 }

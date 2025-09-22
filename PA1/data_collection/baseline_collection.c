@@ -18,7 +18,6 @@ int main(int argc, char *argv[]){
 
     double time_taken = (end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec) / 1000000000;
     //Print the Results
-    printf("The sum of integers from 1 to %d is: %d\n", N, sum);
-    printf("This operation took %0.5f seconds.\n", time_taken);
+    printf("%d %lf\n", sum, time_taken);
 
 }
