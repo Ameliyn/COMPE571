@@ -28,7 +28,7 @@ int main(int argc, char *argv[]){
     
     pthread_t threads[NUM_THREADS];
 
-    int sum = 0;
+    unsigned long sum = 0;
 
     // Divide up the work
     if (NUM_THREADS > N){
@@ -63,7 +63,7 @@ int main(int argc, char *argv[]){
     // Print results and time
     double time_taken = (end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec) / 1000000000;
     //Print the Results
-    printf("The sum of integers from 1 to %d is: %d\n", N, sum);
+    printf("The sum of integers from 1 to %d is: %ld\n", N, sum);
     printf("This operation took %0.5f seconds.\n", time_taken);
 
 }
