@@ -10,9 +10,9 @@ int main(int argc, char *argv[]){
 
     // Do Work
     char * endptr = "";
-    long long N = strtoll(argv[1], &endptr, 10);
-    unsigned long sum = 0;
-    for(long long i = 1; i < N; i++){
+    long N = strtol(argv[1], &endptr, 10);
+    long sum = 0;
+    for(long i = 1; i < N; i++){
         sum += i;
     } 
     
@@ -21,5 +21,5 @@ int main(int argc, char *argv[]){
 
     double time_taken = (end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec) / 1000000000;
     //Print the Results
-    printf("%lu, %lf\n", sum, time_taken);
+    printf("%ld, %lf\n", sum, time_taken);
 }
