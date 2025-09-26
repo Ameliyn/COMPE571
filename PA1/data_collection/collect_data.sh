@@ -5,7 +5,7 @@ set -x
 OUTPUT_FILENAME="pa1_data_$(date '+%Y-%m-%d_%H-%M-%S').csv"
 echo "type, target, sum, time, threads" >> $OUTPUT_FILENAME
 
-ITERATION_LIMIT=1
+ITERATION_LIMIT=100
 
 for iteration in $(seq 1 $ITERATION_LIMIT)
 do
