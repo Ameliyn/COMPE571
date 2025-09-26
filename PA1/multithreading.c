@@ -5,13 +5,14 @@
 
 
 void *calculate_sum(void * thread_data){
-    int *data = (int * )thread_data;
-    int sum = 0;
+    long *data = (long * )thread_data;
+    long sum = 0;
 
-    for(int i = data[0]; i <= data[1]; i++){
+    for(long i = data[0]; i <= data[1]; i++){
         sum += i;
     }
     data[2] = sum;
+    // pthread_exit();
 }
 
 
@@ -23,20 +24,23 @@ int main(int argc, char *argv[]){
     clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 
     // Do Work
-    int N = atoi(argv[1]);
+    char * endptr = "";
+    long N = strtol(argv[1], &endptr, 10);
+    N = N-1;
+
     int NUM_THREADS = atoi(argv[2]);
     
     pthread_t threads[NUM_THREADS];
 
-    unsigned long sum = 0;
+    long sum = 0;
 
     // Divide up the work
     if (NUM_THREADS > N){
-        printf("WARNING: NUMTHREADS (%d) > N (%d). Setting NUMTHREADS to %d\n", NUM_THREADS, N, N);
+        // printf("WARNING: NUMTHREADS (%d) > N (%d). Setting NUMTHREADS to %d\n", NUM_THREADS, N, N);
         NUM_THREADS = N;
     }
-    int separation = N / NUM_THREADS;
-    int thread_data[NUM_THREADS][3];
+    long separation = N / NUM_THREADS;
+    long thread_data[NUM_THREADS][3];
 
     for(int i=0; i < NUM_THREADS; i++){
         thread_data[i][0] = i * separation + 1;
@@ -50,7 +54,6 @@ int main(int argc, char *argv[]){
     }
     
     // Sum the data
-    printf("Joining Threads.\n");
     for(int i=0; i < NUM_THREADS; i++){
         pthread_join(threads[i], NULL);
         sum += thread_data[i][2];
@@ -63,7 +66,7 @@ int main(int argc, char *argv[]){
     // Print results and time
     double time_taken = (end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec) / 1000000000;
     //Print the Results
-    printf("The sum of integers from 1 to %d is: %ld\n", N, sum);
+    printf("The sum of integers from 1 to %ld is: %ld\n", N, sum);
     printf("This operation took %0.5f seconds.\n", time_taken);
 
 }
