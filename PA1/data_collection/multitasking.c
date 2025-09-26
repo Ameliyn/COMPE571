@@ -6,10 +6,10 @@
 #include <sys/wait.h>
 
 
-int calculate_sum(int lower, int upper){
-    int sum = 0;
+int calculate_sum(unsigned long long lower, unsigned long long upper){
+    unsigned long long sum = 0;
 
-    for(int i = lower; i <= upper; i++){
+    for(unsigned long long i = lower; i <= upper; i++){
         sum += i;
     }
     return sum;
@@ -24,9 +24,10 @@ int main(int argc, char *argv[]){
     clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 
     // Do Work
-    int N = atoi(argv[1]);
+    char * endptr = "";
+    unsigned long long N = strtoll(argv[1], &endptr, 10);
     int NUM_TASKS = atoi(argv[2]);
-    unsigned long sum = 0;
+    unsigned long long sum = 0;
 
     int pipes[NUM_TASKS][2];    
     pid_t tasks[NUM_TASKS];
@@ -34,11 +35,11 @@ int main(int argc, char *argv[]){
 
     // Divide up the work
     if (NUM_TASKS > N){
-        printf("WARNING: NUMTASKS (%d) > N (%d). Setting NUMTASKS to %d\n", NUM_TASKS, N, N);
+        printf("WARNING: NUMTASKS (%d) > N (%llu). Setting NUMTASKS to %llu\n", NUM_TASKS, N, N);
         NUM_TASKS = N;
     }
-    int separation = N / NUM_TASKS;
-    int thread_data[2];
+    unsigned long long separation = N / NUM_TASKS;
+    unsigned long long thread_data[2];
     int i;
     for(i=0; i < NUM_TASKS; i++){
         int status = pipe(pipes[i]);
@@ -67,7 +68,7 @@ int main(int argc, char *argv[]){
 
     // Sum the data
     int status;
-    unsigned long temp_sum;
+    unsigned long long temp_sum;
     for(int i=0; i < NUM_TASKS; i++){
         waitpid(tasks[i], &status, 0);
         
@@ -84,5 +85,5 @@ int main(int argc, char *argv[]){
     // Print results and time
     double time_taken = (end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec) / 1000000000;
     //Print the Results
-    printf("%ld, %lf\n", sum, time_taken);
+    printf("%llu, %lf\n", sum, time_taken);
 }

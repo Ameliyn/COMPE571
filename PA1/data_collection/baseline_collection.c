@@ -11,14 +11,8 @@ int main(int argc, char *argv[]){
     // Do Work
     char * endptr = "";
     long long N = strtoll(argv[1], &endptr, 10);
-    long long sum = 0;
-    int bignum = 0;
+    unsigned long sum = 0;
     for(long long i = 1; i < N; i++){
-        if(sum + i < 0){
-            printf("Overflow!\n");
-            bignum += 1;
-            sum -= 1000000000000000000;    
-        }
         sum += i;
     } 
     
@@ -27,5 +21,5 @@ int main(int argc, char *argv[]){
 
     double time_taken = (end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec) / 1000000000;
     //Print the Results
-    printf("%d%llu, %lf\n", bignum, sum, time_taken);
+    printf("%lu, %lf\n", sum, time_taken);
 }

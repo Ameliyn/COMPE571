@@ -5,14 +5,14 @@
 
 
 void *calculate_sum(void * thread_data){
-    int *data = (int * )thread_data;
-    int sum = 0;
+    unsigned long long *data = (long long * )thread_data;
+    unsigned long long sum = 0;
 
-    for(int i = data[0]; i <= data[1]; i++){
+    for(unsigned long long i = data[0]; i <= data[1]; i++){
         sum += i;
     }
     data[2] = sum;
-    thread_exit();
+    // pthread_exit();
 }
 
 
@@ -24,20 +24,22 @@ int main(int argc, char *argv[]){
     clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 
     // Do Work
-    int N = atoi(argv[1]);
+    char * endptr = "";
+    unsigned long long N = strtoll(argv[1], &endptr, 10);
+
     int NUM_THREADS = atoi(argv[2]);
     
     pthread_t threads[NUM_THREADS];
 
-    unsigned long sum = 0;
+    unsigned long long sum = 0;
 
     // Divide up the work
     if (NUM_THREADS > N){
-        printf("WARNING: NUMTHREADS (%d) > N (%d). Setting NUMTHREADS to %d\n", NUM_THREADS, N, N);
+        printf("WARNING: NUMTHREADS (%d) > N (%llu). Setting NUMTHREADS to %llu\n", NUM_THREADS, N, N);
         NUM_THREADS = N;
     }
     int separation = N / NUM_THREADS;
-    int thread_data[NUM_THREADS][3];
+    unsigned long long thread_data[NUM_THREADS][3];
 
     for(int i=0; i < NUM_THREADS; i++){
         thread_data[i][0] = i * separation + 1;
@@ -63,5 +65,5 @@ int main(int argc, char *argv[]){
     // Print results and time
     double time_taken = (end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec) / 1000000000;
     //Print the Results
-    printf("%ld, %lf\n", sum, time_taken);
+    printf("%llu, %lf\n", sum, time_taken);
 }
