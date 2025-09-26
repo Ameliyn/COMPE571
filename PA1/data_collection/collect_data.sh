@@ -1,11 +1,11 @@
 #!/bin/sh
 set -e
-# set -x
+set -x
 
 OUTPUT_FILENAME="pa1_data_$(date '+%Y-%m-%d_%H-%M-%S').csv"
 echo "type, target, sum, time, threads" >> $OUTPUT_FILENAME
 
-ITERATION_LIMIT=100
+ITERATION_LIMIT=1
 
 for iteration in $(seq 1 $ITERATION_LIMIT)
 do
@@ -15,10 +15,11 @@ do
         echo "baseline, $N, $(.\/baseline.o $N), 1" >> $OUTPUT_FILENAME
         for THREAD in 1 2 4 8
         do
-            for i in multithread multitask
+            for i in multithread multitask_fork
             do
                 echo "$i, $N, $(.\/$i.o $N $THREAD), $THREAD" >> $OUTPUT_FILENAME
             done
+            echo "multitask_popen, $N, $(.\/multitask_popen.o 1 $N $THREAD 1), $THREAD" >> $OUTPUT_FILENAME
         done
     done
 done
