@@ -12,6 +12,7 @@ void *calculate_sum(void * thread_data){
         sum += i;
     }
     data[2] = sum;
+    thread_exit();
 }
 
 
@@ -28,7 +29,7 @@ int main(int argc, char *argv[]){
     
     pthread_t threads[NUM_THREADS];
 
-    int sum = 0;
+    unsigned long sum = 0;
 
     // Divide up the work
     if (NUM_THREADS > N){
@@ -62,5 +63,5 @@ int main(int argc, char *argv[]){
     // Print results and time
     double time_taken = (end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec) / 1000000000;
     //Print the Results
-    printf("%d %lf\n", sum, time_taken);
+    printf("%ld, %lf\n", sum, time_taken);
 }
