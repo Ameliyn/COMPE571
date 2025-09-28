@@ -18,7 +18,10 @@ long calculate_sum(long lower, long upper){
 
 int main(int argc, char *argv[]){
     struct timespec start, end;
-
+    if (argc < 5){
+        printf("USAGE: ./multitask_popen.o N_LOWER N_UPPER NUM_TASKS PARENT_FLAG\n");
+        exit(1);
+    }
     // START OF OPERATION
     // Record the start time
     clock_gettime(CLOCK_MONOTONIC_RAW, &start);

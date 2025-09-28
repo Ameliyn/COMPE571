@@ -19,6 +19,10 @@ long calculate_sum(long lower, long upper){
 int main(int argc, char *argv[]){
     struct timespec start, end;
 
+    if (argc < 3){
+        printf("USAGE: ./multitask_fork.o N NUM_TASKS\n");
+        exit(1);
+    }
     // START OF OPERATION
     // Record the start time
     clock_gettime(CLOCK_MONOTONIC_RAW, &start);

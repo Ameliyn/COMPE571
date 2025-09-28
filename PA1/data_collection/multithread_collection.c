@@ -18,7 +18,10 @@ void *calculate_sum(void * thread_data){
 
 int main(int argc, char *argv[]){
     struct timespec start, end;
-
+    if (argc < 2){
+        printf("USAGE: ./multithread.o N NUMTHREADS\n");
+        exit(1);
+    }
     // START OF OPERATION
     // Record the start time
     clock_gettime(CLOCK_MONOTONIC_RAW, &start);
