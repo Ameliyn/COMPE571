@@ -19,6 +19,10 @@ long calculate_sum(long lower, long upper){
 int main(int argc, char *argv[]){
     struct timespec start, end;
 
+    if (argc < 5){
+        printf("USAGE: ./multitask_popen.o N_LOWER N_UPPER NUM_TASKS PARENT_FLAG\n");
+        exit(1);
+    }
     // START OF OPERATION
     // Record the start time
     clock_gettime(CLOCK_MONOTONIC_RAW, &start);
@@ -56,7 +60,7 @@ int main(int argc, char *argv[]){
             thread_data[1] = UPPER - 1;
         }
         char command[100];
-        sprintf(command, "./multitasking_popen.o %ld %ld 1 0", thread_data[0], thread_data[1]);
+        sprintf(command, "./multitask_popen.o %ld %ld 1 0", thread_data[0], thread_data[1]);
         printf("Creating child with %s\n", command);
         tasks[i] = popen(command, "r");
     }

@@ -2,6 +2,12 @@
 
 Prepared by Skye Russ
 
+## Compute Specs:
+
+AMD Ryzen™ 5 5600H with Radeon™ Graphics × 12
+NVIDIA GeForce RTX™ 3060 Laptop GPU
+16GB Ram
+
 ## CASE: Baseline
 
 This case simply adds the numbers from [1,N] in a simple for loop.

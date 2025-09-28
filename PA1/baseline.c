@@ -5,6 +5,10 @@
 
 int main(int argc, char *argv[]){
     struct timespec start, end;
+    if (argc < 2){
+        printf("USAGE: ./baseline.o N\n");
+        exit(1);
+    }
     // Record the start time
     clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 
