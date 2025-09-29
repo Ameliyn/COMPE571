@@ -12,7 +12,6 @@ void *calculate_sum(void * thread_data){
         sum += i;
     }
     data[2] = sum;
-    // pthread_exit();
 }
 
 
