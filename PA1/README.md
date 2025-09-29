@@ -48,6 +48,8 @@ The CSV is organized with the following columns: `type, target, sum, time, threa
 
 All scripts are compiled in the same way as detailed above with the addition of `_collection` to the c files.
 
+Included is a create_graphs.m MATLAB script that creates the tables used in the report.
+
 ## docs
 
 In the docs folder are all graphs and images used in the report as well as a PDF of the report.
