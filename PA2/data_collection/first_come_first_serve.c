@@ -153,7 +153,7 @@ int main(int argc, char const *argv[])
 
 	double avg_resp_time = (turnaround_time[0] + turnaround_time[1] + turnaround_time[2] + turnaround_time[3]) / 4; 
 	// printf("Average Response Time: %0.8f\n", avg_resp_time);
-	printf("%d, %lf, %lf\n", 0, avg_resp_time, context_switch_time);
+	printf("%d, %0.8f, %0.8f\n", 0, avg_resp_time, context_switch_time);
 
 	return 0;
 }

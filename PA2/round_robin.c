@@ -18,11 +18,6 @@
 #define WORKLOAD3 25000
 #define WORKLOAD4 10000
 
-#define QUANTUM1 1000
-#define QUANTUM2 1000
-#define QUANTUM3 1000
-#define QUANTUM4 1000
-
 /************************************************************************************************ 
 					DO NOT CHANGE THE FUNCTION IMPLEMENTATION
 *************************************************************************************************/
@@ -58,6 +53,11 @@ struct process_description{
 
 int main(int argc, char const *argv[])
 {
+	if(argc < 2){
+		printf("USAGE: ./a.out QUANTUM\n");
+		exit(1);
+	}
+	int QUANTUM = atoi(argv[1]);
 	pid_t pid1, pid2, pid3, pid4;
 	int running1, running2, running3, running4;
 
@@ -135,7 +135,7 @@ int main(int argc, char const *argv[])
 		if (running1 > 0){
 		    clock_gettime(CLOCK_MONOTONIC_RAW, &temp1);
 			kill(pid1, SIGCONT);
-			usleep(QUANTUM1);
+			usleep(QUANTUM);
 			kill(pid1, SIGSTOP);
 			clock_gettime(CLOCK_MONOTONIC_RAW, &temp2);
 			processes[0].processing_time += (temp2.tv_sec - temp1.tv_sec) + (double)(temp2.tv_nsec - temp1.tv_nsec) / 1000000000;
@@ -143,7 +143,7 @@ int main(int argc, char const *argv[])
 		if (running2 > 0){
 		    clock_gettime(CLOCK_MONOTONIC_RAW, &temp1);
 			kill(pid2, SIGCONT);
-			usleep(QUANTUM2);
+			usleep(QUANTUM);
 			kill(pid2, SIGSTOP);
 			clock_gettime(CLOCK_MONOTONIC_RAW, &temp2);
 			processes[1].processing_time += (temp2.tv_sec - temp1.tv_sec) + (double)(temp2.tv_nsec - temp1.tv_nsec) / 1000000000;
@@ -151,7 +151,7 @@ int main(int argc, char const *argv[])
 		if (running3 > 0){
 			clock_gettime(CLOCK_MONOTONIC_RAW, &temp1);
 			kill(pid3, SIGCONT);
-			usleep(QUANTUM3);
+			usleep(QUANTUM);
 			kill(pid3, SIGSTOP);
 			clock_gettime(CLOCK_MONOTONIC_RAW, &temp2);
 			processes[2].processing_time += (temp2.tv_sec - temp1.tv_sec) + (double)(temp2.tv_nsec - temp1.tv_nsec) / 1000000000;
@@ -160,7 +160,7 @@ int main(int argc, char const *argv[])
 		if (running4 > 0){
 		    clock_gettime(CLOCK_MONOTONIC_RAW, &temp1);
 			kill(pid4, SIGCONT);
-			usleep(QUANTUM4);
+			usleep(QUANTUM);
 			kill(pid4, SIGSTOP);
 			clock_gettime(CLOCK_MONOTONIC_RAW, &temp2);
 			processes[3].processing_time += (temp2.tv_sec - temp1.tv_sec) + (double)(temp2.tv_nsec - temp1.tv_nsec) / 1000000000;
@@ -203,12 +203,16 @@ int main(int argc, char const *argv[])
 		- processes[2].processing_time - processes[3].processing_time);
 	
 	// Print Results
-    printf("Turnaround Times: {%0.5f, %0.5f, %0.5f, %0.5f}.\n", turnaround_time[0], 
-		turnaround_time[1], turnaround_time[2], turnaround_time[3]);
-    printf("Processing Times: {%0.5f, %0.5f, %0.5f, %0.5f}.\n", processes[0].processing_time, 
-		processes[1].processing_time, processes[2].processing_time, processes[3].processing_time);
-	printf("Context Switch Time: %0.8f\n", context_switch_time);
-	printf("This operation took %0.5f seconds.\n", total_time);
+    // printf("Turnaround Times: {%0.5f, %0.5f, %0.5f, %0.5f}.\n", turnaround_time[0], 
+		// turnaround_time[1], turnaround_time[2], turnaround_time[3]);
+    // printf("Processing Times: {%0.5f, %0.5f, %0.5f, %0.5f}.\n", processes[0].processing_time, 
+		// processes[1].processing_time, processes[2].processing_time, processes[3].processing_time);
+	// printf("Context Switch Time: %0.8f\n", context_switch_time);
+	// printf("This operation took %0.5f seconds.\n", total_time);
+	
+	double avg_resp_time = (turnaround_time[0] + turnaround_time[1] + turnaround_time[2] + turnaround_time[3]) / 4; 
+	// printf("Average Response Time: %0.8f\n", avg_resp_time);
+	printf("%d, %lf, %lf\n", QUANTUM, avg_resp_time, context_switch_time);
 
 	return 0;
 }
