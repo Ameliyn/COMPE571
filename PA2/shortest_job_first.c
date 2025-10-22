@@ -7,7 +7,6 @@
 #include <time.h> 
 #include <signal.h>
 #include <sys/time.h>
-#include <linux/time.h>
 
 /************************************************************************************************ 
 		These DEFINE statements represent the workload size of each task and 
@@ -46,6 +45,8 @@ void myfunction(int param){
 struct process_description{
 	int workload_time;
 	pid_t pid;
+	int id;
+	struct timespec end_time, start_time;
 };
 int main(int argc, char const *argv[])
 {
@@ -85,14 +86,28 @@ int main(int argc, char const *argv[])
 		At this point, all  newly-created child processes are stopped, and ready for scheduling.
 	*************************************************************************************************/
 
+	// Store process information in a struct
+	struct process_description processes[4], temp_process;
+	for(int i = 0; i < 4; i++){processes[i].end_time.tv_nsec = 0;}
+	processes[0].workload_time = WORKLOAD1;
+	processes[0].pid = pid1;
+	processes[0].id = 1;
+
+	processes[1].workload_time = WORKLOAD2;
+	processes[1].pid = pid2;
+	processes[1].id = 2;
+
+	processes[2].workload_time = WORKLOAD3;
+	processes[2].pid = pid3;
+	processes[2].id = 3;
+
+	processes[3].workload_time = WORKLOAD4;
+	processes[3].pid = pid4;
+	processes[3].id = 4;
 
 	// Start timing
-    struct timespec start, end, proc_end[4], temp1;
-	proc_end[0].tv_nsec = 0;
-	proc_end[1].tv_nsec = 0;
-	proc_end[2].tv_nsec = 0;
-	proc_end[3].tv_nsec = 0;
-	double time_taken[4] = {0,0,0,0};
+    struct timespec start, end, temp1, proc_start;
+	// Start Overhead calculation
     clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 
 	/************************************************************************************************
@@ -104,42 +119,24 @@ int main(int argc, char const *argv[])
 
 	// Find Scheduling Order
 
-	struct process_description processes[4];
-	processes[0].workload_time = WORKLOAD1;
-	processes[0].pid = pid1;
-
-	processes[1].workload_time = WORKLOAD2;
-	processes[1].pid = pid2;
-
-	processes[2].workload_time = WORKLOAD3;
-	processes[2].pid = pid3;
-
-	processes[3].workload_time = WORKLOAD4;
-	processes[3].pid = pid4;
-
-	// Sort by shortest job first
-	for(int i = 0; i < 4; i++){
-		if(processes[i].workload_time > processes[i+1].workload_time){
-			struct process_description temp_process;
-			temp_process.workload_time = processes[i+1].workload_time;
-			temp_process.pid = processes[i+1].pid;
-			processes[i+1].workload_time = processes[i].workload_time;
-			processes[i+1].pid = processes[i].pid;
-			processes[i].workload_time = temp_process.workload_time;
-			processes[i].pid = temp_process.pid;
-		}
-		else {
-			break;
+	// Sort by shortest job first (bubble sort)
+	for (int step = 0; step < 3; step++) {
+		for (int i = 0; i < 3 - step; i++) {
+			if (processes[i].workload_time > processes[i + 1].workload_time) {
+				temp_process = processes[i];
+				processes[i] = processes[i+1];
+				processes[i+1] = temp_process;
+			}
 		}
 	}
 
 	int status;
+    clock_gettime(CLOCK_MONOTONIC_RAW, &proc_start);
 	for(int i = 0; i < 4; i++){
-		clock_gettime(CLOCK_MONOTONIC_RAW, &temp1);
-		kill(pid1, SIGCONT);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &processes[i].start_time);
+		kill(processes[i].pid, SIGCONT);
 		waitpid(processes[i].pid, &status, 0);
-		clock_gettime(CLOCK_MONOTONIC_RAW, &proc_end[i]);
-		time_taken[i] += (proc_end[i].tv_sec - temp1.tv_sec) + (double)(proc_end[i].tv_nsec - temp1.tv_nsec) / 1000000000;
+		clock_gettime(CLOCK_MONOTONIC_RAW, &processes[i].end_time);
 	}
 	/************************************************************************************************
 		- Scheduling code ends here
@@ -148,17 +145,31 @@ int main(int argc, char const *argv[])
 	// Record End time
     clock_gettime(CLOCK_MONOTONIC_RAW, &end);
 	
-	double proc_time_taken[4] = {0,0,0,0};
-	for(int i = 0; i < 4; i++){
-		proc_time_taken[i] = (proc_end[i].tv_sec - start.tv_sec) + (double)(proc_end[i].tv_nsec - start.tv_nsec) / 1000000000;
+	// Sort by ID (bubble sort)
+	for (int step = 0; step < 3; step++) {
+		for (int i = 0; i < 3 - step; i++) {
+			if (processes[i].id > processes[i + 1].id) {
+				temp_process = processes[i];
+				processes[i] = processes[i+1];
+				processes[i+1] = temp_process;
+			}
+		}
 	}
+
+	double turnaround_time[4], processing_time[4];
+	for(int i = 0; i < 4; i++){
+		turnaround_time[i] = (processes[i].end_time.tv_sec - start.tv_sec) + (double)(processes[i].end_time.tv_nsec - start.tv_nsec) / 1000000000;
+		processing_time[i] = (processes[i].end_time.tv_sec - processes[i].start_time.tv_sec) + (double)(processes[i].end_time.tv_nsec - processes[i].start_time.tv_nsec) / 1000000000;
+	}
+
 	double total_time = (end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec) / 1000000000;
-    double overhead_time = total_time - time_taken[0] - time_taken[1] - time_taken[2] - time_taken[3];
+	double scheduling_time = (proc_start.tv_sec - start.tv_sec) + (double)(proc_start.tv_nsec - start.tv_nsec) / 1000000000;
+	double context_switch_time = total_time - scheduling_time - processing_time[0] - processing_time[1] - processing_time[2] - processing_time[3];
 	
 	// Print Results
-    printf("Turnaround Times: {%0.5f, %0.5f, %0.5f, %0.5f}.\n", proc_time_taken[0], proc_time_taken[1], proc_time_taken[2], proc_time_taken[3]);
-    printf("Processing Times: {%0.5f, %0.5f, %0.5f, %0.5f}.\n", time_taken[0], time_taken[1], time_taken[2], time_taken[3]);
-	printf("Overhead: %0.5f\n", overhead_time);
+    printf("Turnaround Times: {%0.5f, %0.5f, %0.5f, %0.5f}.\n", turnaround_time[0], turnaround_time[1], turnaround_time[2], turnaround_time[3]);
+    printf("Processing Times: {%0.5f, %0.5f, %0.5f, %0.5f}.\n", processing_time[0], processing_time[1], processing_time[2], processing_time[3]);
+	printf("Context Switch Time: %0.8f\n", context_switch_time);
 	printf("This operation took %0.5f seconds.\n", total_time);
 
 	return 0;
