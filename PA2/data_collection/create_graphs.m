@@ -1,58 +1,92 @@
 clear; close all force; clc;
 
-data_table = sortrows(readtable("pa1_data_2025-09-26_11-08-32.csv"),{'type','target','threads'},"ascend");
+data_table = sortrows(readtable("pa2_data_2025-10-21_22-56-07.csv"),{'Type','Quantum'},"ascend");
 
-types = string(unique(data_table.type));
-targets = string(unique(data_table.target));
-threads = string(unique(data_table.threads));
+types = string(unique(data_table.Type));
+quantums = string(unique(data_table.Quantum));
+avg_response_times = string(unique(data_table.AverageResponseTime));
+context_switch_times = string(unique(data_table.ContextSwitchTime));
 
-separated_tables = double(zeros(length(types),length(targets),length(threads),100));
+avg_response_times = double(zeros(length(types),length(quantums),100));
+context_switch_times = double(zeros(length(types),length(quantums),100));
 
 
 for i = 1:height(data_table)
     
-    separated_tables( ...
-        strcmp(types, string(data_table(i,"type").type)), ...
-        strcmp(targets, string(data_table(i,"target").target)), ...
-        strcmp(threads, string(data_table(i,"threads").threads)), ...
-        (mod(i,100)+1)) = data_table(i,"time").time;
+    avg_response_times( ...
+        strcmp(types, string(data_table(i,"Type").Type)), ...
+        strcmp(quantums, string(data_table(i,"Quantum").Quantum)), ...
+        (mod(i,100)+1)) = data_table(i,"AverageResponseTime").AverageResponseTime;
+    context_switch_times( ...
+        strcmp(types, string(data_table(i,"Type").Type)), ...
+        strcmp(quantums, string(data_table(i,"Quantum").Quantum)), ...
+        (mod(i,100)+1)) = data_table(i,"ContextSwitchTime").ContextSwitchTime;
 end
 
-separated_results = string(zeros(length(types),length(targets),length(threads),3));
+separated_results = string(zeros(length(types),length(quantums),3));
 names = {};
 means = {};
 stds = {};
 
-for target=1:length(targets)
-    names{target} = [];
-    means{target} = [];
-    stds{target} = [];
-    for thread=1:length(threads)
-
-        for type=1:length(types)
-            x(:) = separated_tables(type,target,thread,:);
-            
-            if(mean(x)~=0)
-                names{target} = [names{target}, "" + types(type) + " (" + threads(thread) + ")"];
-                means{target} = [means{target}, mean(x)];
-                stds{target} = [stds{target}, std(x)];
-                separated_results(type, target, thread, :) = [names{target}(end), means{target}(end), stds{target}(end)];
-            end
+for quantum=1:length(quantums)
+% for quantum=1:2
+    names{quantum} = [];
+    means{quantum} = [];
+    stds{quantum} = [];
+    for type=1:length(types)
+        x(:) = avg_response_times(type,quantum,:);
+        
+        if(mean(x)~=0)
+            names{quantum} = [names{quantum}, quantums(quantum)];
+            means{quantum} = [means{quantum}, mean(x)];
+            stds{quantum} = [stds{quantum}, std(x)];
+            separated_results(type, quantum, :) = [names{quantum}(end), means{quantum}(end), stds{quantum}(end)];
         end
     end
 end
 
+round_robin(:,:) = reshape(separated_results(strcmp(types, "rr"),:,:), 51,3);
+multi_level_feedback_queue = reshape(separated_results(strcmp(types, "mlfq"),:,:),51,3);
 
-for target=1:length(targets)
-    T = table(names{target}(:), ...
-        means{target}(:), ...
-        stds{target}(:));
-    f = uifigure('Position', [100 100 400 368]);
-    uitable(f, 'Data', T, ...
-        'ColumnName', {"Case (Threads)", "Mean", "Standard Deviation"}, ...
-        'RowName', T.Properties.RowNames, ...
-        'Units', 'Normalized', ...
-        'Position', [0.05 0.05 0.9 0.9]); % Adjust position and size within the figure
-    f.Name = "Target: " + sprintf("%.1e", str2double(targets(target)));
-    exportapp(f, "Tables_" + sprintf("%.1e", str2double(targets(target))) + ".png");
-end
+T = table(multi_level_feedback_queue(:,1), multi_level_feedback_queue(:,2), multi_level_feedback_queue(:,3));
+f = uifigure('Position', [100 100 400 368]);
+uitable(f, 'Data', T, ...
+    'ColumnName', {"Case (Quantum)", "Mean", "Standard Deviation"}, ...
+    'RowName', T.Properties.RowNames, ...
+    'Units', 'Normalized', ...
+    'Position', [0.05 0.05 0.9 0.9]); % Adjust position and size within the figure
+f.Name = "MLFQ";
+
+T = table(round_robin(:,1), round_robin(:,2), round_robin(:,3));
+f = uifigure('Position', [100 100 400 368]);
+uitable(f, 'Data', T, ...
+    'ColumnName', {"Case (Quantum)", "Mean", "Standard Deviation"}, ...
+    'RowName', T.Properties.RowNames, ...
+    'Units', 'Normalized', ...
+    'Position', [0.05 0.05 0.9 0.9]); % Adjust position and size within the figure
+f.Name = "Round Robin";
+
+f = figure();
+ax = axes(f);
+plot(ax,str2double(round_robin(:,1)),str2double(round_robin(:,2)));
+f.Name = "Round Robin";
+
+f2 = figure();
+ax2 = axes(f2);
+plot(ax2,str2double(multi_level_feedback_queue(:,1)),str2double(multi_level_feedback_queue(:,2)));
+f2.Name = "Mutli Level Feedback Queues";
+
+% for quantum=1:length(quantums)
+% for quantum=1:2
+%     T = table(names{quantum}(:), ...
+%         means{quantum}(:), ...
+%         stds{quantum}(:));
+%     f = uifigure('Position', [100 100 400 368]);
+%     uitable(f, 'Data', T, ...
+%         'ColumnName', {"Case (Quantum)", "Mean", "Standard Deviation"}, ...
+%         'RowName', T.Properties.RowNames, ...
+%         'Units', 'Normalized', ...
+%         'Position', [0.05 0.05 0.9 0.9]); % Adjust position and size within the figure
+%     f.Name = "Quantum: " + quantums(quantum);
+%     % exportapp(f, "Tables_" + quantums(quantum) + ".png");
+% end
