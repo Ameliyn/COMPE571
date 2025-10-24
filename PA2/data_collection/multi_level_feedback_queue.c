@@ -155,8 +155,10 @@ int main(int argc, char const *argv[]) {
 	clock_gettime(CLOCK_MONOTONIC_RAW, &temp2);
 	processes[3].processing_time += (temp2.tv_sec - temp1.tv_sec) + (double)(temp2.tv_nsec - temp1.tv_nsec) / 1000000000;
 
+	double static_state[4];
 	for(int i = 0; i < 4; i++){
 		waitpid(processes[i].pid, &running[i], WNOHANG);
+		static_state[i] = running[i];
 		if (running[i] == 0 && processes[i].end_time.tv_nsec == 0){
 			clock_gettime(CLOCK_MONOTONIC_RAW, &processes[i].end_time);
 		}
@@ -203,7 +205,8 @@ int main(int argc, char const *argv[]) {
 	
 	double avg_resp_time = (turnaround_time[0] + turnaround_time[1] + turnaround_time[2] + turnaround_time[3]) / 4; 
 	// printf("Average Response Time: %0.8f\n", avg_resp_time);
-	printf("%d, %0.8f, %0.8f\n", QUANTUM, avg_resp_time, context_switch_time);
+	printf("%d, %0.8f, %0.8f, %0.3f\n", QUANTUM, avg_resp_time, context_switch_time, 
+		(static_state[0] + static_state[1] + static_state[2] + static_state[3]) / 4.0f);
 
 	return 0;
 }
