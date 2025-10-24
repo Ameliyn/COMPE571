@@ -1,0 +1,3 @@
+Type, Quantum, Average Response Time, Context Switch Time, Second Queue Usage
+rr, 0, 0.86935433, 0.05656683, 0
+rr, 500, 0.67126354, 0.00639469, 0
