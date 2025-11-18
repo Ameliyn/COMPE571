@@ -17,6 +17,8 @@ struct process_description{
 /**
  * Generates a Rate Monotonic Schedule for the provided tasks.
  * 
+ * If the CPU utilization of the task set is greater than 1, then this function returns -1.
+ * 
  * Param:
  * num_tasks (int): Number of Tasks
  * sys_time (int): How long of a schedule to create
@@ -39,7 +41,7 @@ float generate_rm_schedule(
 	const int frequencies[4] = {1188, 918, 648, 384};
 	
 	if(print_results) printf("Scheduling %d tasks using RM\n", num_tasks);
-	const double rm_constant = (double)num_tasks * (pow(2, 1.0/(double)num_tasks)-1);
+	// const double rm_constant = (double)num_tasks * (pow(2, 1.0/(double)num_tasks)-1);
 	double task_utilization = 0.0;
 	for(int i = 0; i < num_tasks; i++){
 		task_utilization += ((double)tasks[i].wcet[task_mask[i]] / (double)tasks[i].period);
@@ -48,18 +50,18 @@ float generate_rm_schedule(
 		if(print_results) printf("Tasks not schedulable using RM... %0.4lf > 1\n", task_utilization);
 		return -1;
 	}
-	else if (task_utilization > rm_constant){
-		if(print_results) printf("Tasks not necessarily schedulable using RM... %0.4lf > %0.4lf\n", task_utilization, rm_constant);
-	}
-	else{
-		if(print_results) printf("RM Inequality: %0.4lf <= %0.4lf\n", task_utilization, rm_constant);
-	}
+	// else if (task_utilization > rm_constant){
+	// 	if(print_results) printf("Tasks not necessarily schedulable using RM... %0.4lf > %0.4lf\n", task_utilization, rm_constant);
+	// }
+	// else{
+	// 	if(print_results) printf("RM Inequality: %0.4lf <= %0.4lf\n", task_utilization, rm_constant);
+	// }
 
 	int remaining_computation[num_tasks];
 	int active_task, new_active_task = -1;
 	double energy_consumed = 0;
 	double total_energy_consumed = 0;
-	int last_change_time = 0;
+	int last_change_time, total_idle_time = 0;
 	if(print_results) printf("%8s %8s %8s %8s %8s\n", "START", "NAME", "FREQ", "END", "POWER");
 	for(int timestep = 0; timestep < sys_time; timestep++){
 
@@ -96,6 +98,7 @@ float generate_rm_schedule(
 
 				if(timestep != 0){
 					energy_consumed = (double)time_taken * ((double)cpu_power[4] * 0.001);
+					total_idle_time += time_taken;
 					total_energy_consumed += energy_consumed;
 					if(print_results) printf(" %8d %8.4lfJ\n", timestep-1, energy_consumed);
 				}
@@ -127,83 +130,17 @@ float generate_rm_schedule(
 		if(print_results) printf(" %8d %8.4lfJ\n", sys_time, energy_consumed);
 	}
 	else{
+		total_idle_time += time_taken;
 		energy_consumed = (double)time_taken * ((double)cpu_power[4] * 0.001);
 		if(print_results) printf(" %8d %8.4lfJ\n", sys_time, energy_consumed);
 	}
 	total_energy_consumed += energy_consumed;
-	if(print_results) printf("Total Energy Consumed: %8.4lfJ\n", total_energy_consumed);
+	if(print_results) {
+		printf("Total Energy Consumed: %8.4lfJ\n", total_energy_consumed);
+		printf("Total Idle time: %d seconds (%4.4f%%)\n", total_idle_time, (double)total_idle_time / (double) sys_time);
+	}
 
 	return total_energy_consumed;
-}
-
-/**
- * Generates an Energy Efficient Rate Monotonic Schedule for the provided tasks.
- * 
- * Param:
- * num_tasks (int): Number of Tasks
- * sys_time (int): How long of a schedule to create
- * tasks (process_description[]): Task Definitions
- * cpu_power (int[]): CPU Power at Frequency (mW)
- * print_results (int): Flag to print results
- * 
- * Returns:
- * float: Joules cost of schedule
- */
-int generate_ee_rm_schedule(
-	int num_tasks, 
-	int sys_time,
-	struct process_description tasks[], 
-	int cpu_power[],
-	int print_results) 
-{
-	printf("Scheduling %d tasks using RM EE\n", num_tasks);
-	int task_mask[num_tasks], saved_task_mask[num_tasks];
-	float best_power_cost = 99999999999;
-	float result;
-	int combinations_tested = 0;
-
-	for(int task = 0; task < num_tasks; task++){task_mask[task] = 0;}
-	for(int outer_index = 0; outer_index < num_tasks; outer_index++){
-		for(int freq = 0; freq < 4; freq++){
-			task_mask[outer_index] = freq;
-	
-			for(int index = 0; index < num_tasks; index++){
-				for(int inner_freq = 0; inner_freq < 4; inner_freq++){
-					int old_value = task_mask[index];
-					task_mask[index] = inner_freq;
-					// Check all combinations of these numbers
-					for (int j = 1; j <= num_tasks; j++) {
-						for (int i = 0; i < num_tasks-1; i++) {
-							if(task_mask[i] != task_mask[i+1]){
-								int temp = task_mask[i];
-								task_mask[i] = task_mask[i+1];
-								task_mask[i+1] = temp;
-
-								// Check if this task mask works/is better
-								// for (int k = 0 ; k < num_tasks ; k++){
-								// 	printf("%d ", task_mask[k]);
-								// }
-								// printf("\n");
-								combinations_tested++;
-								result = generate_rm_schedule(num_tasks, sys_time, tasks, task_mask, cpu_power, 0);
-								if (result != -1 && result < best_power_cost){
-									best_power_cost = result;
-									for(int task = 0; task < num_tasks; task++){saved_task_mask[task] = task_mask[task];}
-								}
-							}
-						}
-					}
-					task_mask[index] = old_value;
-				}
-			}
-		}
-	}
-	if (best_power_cost == 99999999999){
-		printf("Tasks were not schedulable.\n");
-		return -1;
-	}
-	printf("%d combinations tested\n", combinations_tested);
-	return generate_rm_schedule(num_tasks, sys_time, tasks, saved_task_mask, cpu_power, 1);
 }
 
 /**
@@ -228,9 +165,208 @@ float generate_edf_schedule(
 	int cpu_power[],
 	int print_results) 
 {
+	const int frequencies[4] = {1188, 918, 648, 384};
+	
+	if(print_results) printf("Scheduling %d tasks using EDF\n", num_tasks);
+	// const double rm_constant = (double)num_tasks * (pow(2, 1.0/(double)num_tasks)-1);
+	double task_utilization = 0.0;
+	for(int i = 0; i < num_tasks; i++){
+		task_utilization += ((double)tasks[i].wcet[task_mask[i]] / (double)tasks[i].period);
+	}
+	if (task_utilization > 1){
+		if(print_results) printf("Tasks not schedulable using EDF... Utiliztation %0.4lf > 1\n", task_utilization);
+		return -1;
+	}
+	// else if (task_utilization > rm_constant){
+	// 	if(print_results) printf("Tasks not necessarily schedulable using RM... %0.4lf > %0.4lf\n", task_utilization, rm_constant);
+	// }
+	// else{
+	// 	if(print_results) printf("RM Inequality: %0.4lf <= %0.4lf\n", task_utilization, rm_constant);
+	// }
 
-	printf("Scheduling %d tasks using EDF\n", num_tasks);
-	return 0;
+	int remaining_computation[num_tasks], next_deadline[num_tasks];
+	int active_task, new_active_task = -1;
+	double energy_consumed = 0;
+	double total_energy_consumed = 0;
+	int last_change_time, total_idle_time = 0;
+	if(print_results) printf("%8s %8s %8s %8s %8s\n", "START", "NAME", "FREQ", "END", "POWER");
+	for(int i = 0; i < num_tasks; i++){next_deadline[i] = tasks[i].period;}
+	for(int timestep = 0; timestep < sys_time; timestep++){
+
+		// Check for missed deadlines
+		for(int i = 0; i < num_tasks; i++){
+			if(timestep != 0 && timestep % tasks[i].period == 0 && remaining_computation[i] > 0){
+				if(print_results) printf("\n%d Missed their deadline. Scheduling Failed on timestep %d...\n", i, timestep);
+				return -1;
+			}
+		}
+
+		// Restart tasks as they come in.
+		for(int i = 0; i < num_tasks; i++){
+			if(timestep % tasks[i].period == 0){
+				remaining_computation[i] = tasks[i].wcet[task_mask[i]];
+				next_deadline[i] = timestep + tasks[i].period;  
+			}
+		}
+
+		// Select current active task
+		new_active_task = -1;
+		for(int i = 0; i < num_tasks; i++){
+			if(new_active_task == -1 && remaining_computation[i] > 0){
+				new_active_task = i;
+			}
+			else if(remaining_computation[i] > 0 && next_deadline[i] < next_deadline[new_active_task]){
+				new_active_task = i;
+			}
+		}
+		if(new_active_task != active_task){
+			// Compute Energy Consumed
+			int time_taken = timestep - last_change_time;
+
+			if(new_active_task == -1){
+
+				if(timestep != 0){
+					energy_consumed = (double)time_taken * ((double)cpu_power[4] * 0.001);
+					total_energy_consumed += energy_consumed;
+					total_idle_time += time_taken;
+					if(print_results) printf(" %8d %8.4lfJ\n", timestep-1, energy_consumed);
+				}
+				if(timestep+1 != sys_time){
+					if(print_results) printf("%8d %8s %8s", timestep, "IDLE", "IDLE");
+				}
+			}
+			else{
+				if (timestep != 0){
+					energy_consumed = (double)time_taken * ((double)cpu_power[task_mask[new_active_task]] * 0.001);
+					total_energy_consumed += energy_consumed;
+					if(print_results) printf(" %8d %8.4lfJ\n", timestep-1, energy_consumed);
+
+				}
+				if(timestep+1 != sys_time){
+					if(print_results) printf("%8d %8s %8d", timestep, tasks[new_active_task].name, frequencies[task_mask[new_active_task]]);
+				}
+
+			}
+			last_change_time = timestep;
+
+		}
+		active_task = new_active_task;
+		remaining_computation[active_task]--;	
+	}
+	int time_taken = sys_time - last_change_time;
+	if(new_active_task != -1){
+		energy_consumed = (double)time_taken * ((double)cpu_power[task_mask[new_active_task]] * 0.001);
+		if(print_results) printf(" %8d %8.4lfJ\n", sys_time, energy_consumed);
+	}
+	else{
+		total_idle_time += time_taken;
+		energy_consumed = (double)time_taken * ((double)cpu_power[4] * 0.001);
+		if(print_results) printf(" %8d %8.4lfJ\n", sys_time, energy_consumed);
+	}
+	total_energy_consumed += energy_consumed;
+	if(print_results) {
+		printf("Total Energy Consumed: %8.4lfJ\n", total_energy_consumed);
+		printf("Total Idle time: %d seconds (%4.4f%%)\n", total_idle_time, (double)total_idle_time / (double) sys_time);
+	}
+
+	return total_energy_consumed;
+}
+
+/**
+ * Recursively check every frequency for every task to get the best energy efficent schedule.
+ * 
+ * Param:
+ * num_tasks (int): Number of Tasks
+ * sys_time (int): How long of a schedule to create
+ * tasks (process_description[]): Task Definitions
+ * cpu_power (int[]): CPU Power at Frequency (mW)
+ * rm_flag (int): 1 for RM, 0 for EDF
+ * task_pointer (int): Current task
+ * task_mask (int[]): Array with frequency values for each task
+ * best_task_mask (int[]): Current best task mask
+ * best_power (float*): Float pointer that holds the lowest power task frequency set.
+ * num_checked (int*): Debug value that increments for every RM schedule checked
+ * 
+ * NOTE: num_checked increments for every function call to "generate_rm_schedule". However, "generate_rm_schedule" checks the cpu
+ * utilization and does not attempt to generate a complete RM schedule if that utilization is above 1. 
+ * 
+ * Returns:
+ * float: Joules cost of schedule
+ */
+int generate_ee_schedule_helper(
+	int num_tasks, 
+	int sys_time,
+	struct process_description tasks[], 
+	int cpu_power[],
+	int rm_flag,
+	int task_pointer,
+	int task_mask[],
+	int best_task_mask[],
+	float *best_power,
+	int *num_checked){
+		int error;
+		if(task_pointer+1 == num_tasks){
+			float result;
+			float base_power = cpu_power[0]*tasks[task_pointer].wcet[0]*0.001;
+			for(int freq = 0; freq < 4; freq++){
+				// Check for power savings
+				if(cpu_power[freq] * tasks[task_pointer].wcet[freq]*0.001 <= base_power){
+					task_mask[task_pointer] = freq;
+					if(rm_flag) result = generate_rm_schedule(num_tasks, sys_time, tasks, task_mask, cpu_power, 0);
+					else result = generate_edf_schedule(num_tasks, sys_time, tasks, task_mask, cpu_power, 0);
+					*num_checked = *num_checked + 1;
+					if(result != -1 && result < *best_power){
+						*best_power = result;
+						for(int task = 0; task < num_tasks; task++){best_task_mask[task] = task_mask[task];}
+					}
+				}
+			}
+			error = 1;
+		}
+		else{
+			float base_power = cpu_power[0]*tasks[task_pointer].wcet[0]*0.001;
+			for(int freq = 0; freq < 4; freq++){
+				// Check for power savings
+				if(cpu_power[freq] * tasks[task_pointer].wcet[freq]*0.001 <= base_power){
+					task_mask[task_pointer] = freq;
+					error = generate_ee_schedule_helper(num_tasks, sys_time, tasks, cpu_power, rm_flag, task_pointer+1, task_mask, best_task_mask, best_power, num_checked);
+				}
+			}
+		}
+		return error;
+}
+
+/**
+ * Generates an Energy Efficient Rate Monotonic Schedule for the provided tasks.
+ * 
+ * Param:
+ * num_tasks (int): Number of Tasks
+ * sys_time (int): How long of a schedule to create
+ * tasks (process_description[]): Task Definitions
+ * cpu_power (int[]): CPU Power at Frequency (mW)
+ * print_results (int): Flag to print results
+ * 
+ * Returns:
+ * float: Joules cost of schedule
+ */
+int generate_ee_rm_schedule(
+	int num_tasks, 
+	int sys_time,
+	struct process_description tasks[], 
+	int cpu_power[],
+	int print_results) 
+{
+	printf("Checking 4 frequency values each for %d tasks...\n", num_tasks);
+	int task_mask[num_tasks], best_task_mask[num_tasks];
+	float best_power_cost = 99999999999;
+	float result;
+	int combinations_tested = 0;
+
+	for(int task = 0; task < num_tasks; task++){task_mask[task] = 0;}
+	int num_checked = 0;
+	int error = generate_ee_schedule_helper(num_tasks, sys_time, tasks, cpu_power, 1, 0, task_mask, best_task_mask, &best_power_cost, &num_checked);
+	printf("%d iterations checked!\n", num_checked);
+	return generate_rm_schedule(num_tasks, sys_time, tasks, best_task_mask, cpu_power, 1);
 }
 
 /**
@@ -252,8 +388,17 @@ int generate_ee_edf_schedule(
 	struct process_description tasks[], 
 	int cpu_power[],
 	int print_results){
-	printf("Scheduling %d tasks using EE\n", num_tasks);
-	return 0;
+	printf("Checking 4 frequency values each for %d tasks...\n", num_tasks);
+	int task_mask[num_tasks], best_task_mask[num_tasks];
+	float best_power_cost = 99999999999;
+	float result;
+	int combinations_tested = 0;
+
+	for(int task = 0; task < num_tasks; task++){task_mask[task] = 0;}
+	int num_checked = 0;
+	int error = generate_ee_schedule_helper(num_tasks, sys_time, tasks, cpu_power, 0, 0, task_mask, best_task_mask, &best_power_cost, &num_checked);
+	printf("%d iterations checked!\n", num_checked);
+	return generate_edf_schedule(num_tasks, sys_time, tasks, best_task_mask, cpu_power, 1);
 }
 
 int main(int argc, char const *argv[])
