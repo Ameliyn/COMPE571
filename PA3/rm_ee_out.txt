@@ -1,0 +1,40 @@
+Analyzing input1.txt and scheduling with RM (Energy Efficient: 1)
+Num_tasks: 5 over 1000 seconds.
+CPU Power Costs:
+  1188:  625mW
+  918 :  447mW
+  648 :  307mW
+  384 :  212mW
+  idle:   84mW
+Tasks:     Name Period 1188  918  648  384
+            w1    520    53   66   89  141
+            w2    220    40   50   67  114
+            w3    500   104  134  184  313
+            w4    200    57   74  103  175
+            w5    300    35   45   62  104
+Checking 4 frequency values each for 5 tasks...
+432 iterations checked!
+Scheduling 5 tasks using RM
+   START     NAME     FREQ      END    POWER
+       0       w5     1188       34  15.6450J
+      35       w2      918       84  31.2500J
+      85       w1     1188      137  33.1250J
+     138       w4     1188      194  35.6250J
+     195       w3     1188      199   3.1250J
+     200       w4     1188      256  25.4790J
+     257       w2      918      306  31.2500J
+     307       w5     1188      341  21.8750J
+     342       w3     1188      440  44.2530J
+     441       w2      918      490  31.2500J
+     491       w4     1188      547  35.6250J
+     548       w1     1188      600  33.1250J
+     601       w5     1188      635  21.8750J
+     636       w4     1188      692  25.4790J
+     693       w2      918      742  31.2500J
+     743       w3     1188      846  65.0000J
+     847       w4     1188      903  35.6250J
+     904       w5     1188      938  15.6450J
+     939       w2      918      988   4.2000J
+     989     IDLE     IDLE     1000   0.9240J
+Total Energy Consumed: 541.6250J
+Total Idle time: 61 seconds (0.0610%)
