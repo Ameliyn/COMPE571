@@ -1,12 +1,6 @@
 #include <stdio.h> 
-#include <sys/types.h> 
-#include <unistd.h>  
 #include <stdlib.h>  
-#include <sys/wait.h> 
-#include <string.h> 
-#include <time.h> 
-#include <signal.h>
-#include <math.h>
+#include <string.h>
 
 struct process_description{
 	//<name of task> <deadline/period> <WCET @ 1188 Mhz> <WCET @918 Mhz> <WCET @ 648 Mhz> <WCET @ 384 Mhz>.
