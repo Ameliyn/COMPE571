@@ -50,15 +50,9 @@ float generate_rm_schedule(
 		if(print_results) printf("Tasks not schedulable using RM... %0.4lf > 1\n", task_utilization);
 		return -1;
 	}
-	// else if (task_utilization > rm_constant){
-	// 	if(print_results) printf("Tasks not necessarily schedulable using RM... %0.4lf > %0.4lf\n", task_utilization, rm_constant);
-	// }
-	// else{
-	// 	if(print_results) printf("RM Inequality: %0.4lf <= %0.4lf\n", task_utilization, rm_constant);
-	// }
 
 	int remaining_computation[num_tasks];
-	int active_task, new_active_task = -1;
+	int active_task = -1, new_active_task = -1;
 	double energy_consumed = 0;
 	double total_energy_consumed = 0;
 	int last_change_time, total_idle_time = 0;
@@ -73,59 +67,68 @@ float generate_rm_schedule(
 			}
 		}
 
+		int scheduling_flag = 0;
 		// Restart tasks as they come in.
 		for(int i = 0; i < num_tasks; i++){
 			if(timestep % tasks[i].period == 0){
 				remaining_computation[i] = tasks[i].wcet[task_mask[i]];
+				scheduling_flag = 1;
 			}
 		}
 
-		// Select current active task
-		new_active_task = -1;
-		for(int i = 0; i < num_tasks; i++){
-			if(new_active_task == -1 && remaining_computation[i] > 0){
-				new_active_task = i;
+		if(active_task != -1 && remaining_computation[active_task] == 0){
+			scheduling_flag = 1;
+		}
+
+		// Only check the scheduler if necessary
+		if(scheduling_flag) {
+			// Select current active task
+			new_active_task = -1;
+			for(int i = 0; i < num_tasks; i++){
+				if(new_active_task == -1 && remaining_computation[i] > 0){
+					new_active_task = i;
+				}
+				else if(remaining_computation[i] > 0 && remaining_computation[new_active_task] > remaining_computation[i]){
+					new_active_task = i;
+				}
 			}
-			else if(remaining_computation[i] > 0 && remaining_computation[new_active_task] > remaining_computation[i]){
-				new_active_task = i;
+			if(new_active_task != active_task){
+				// Compute Energy Consumed
+				int time_taken = timestep - last_change_time;
+
+				if(new_active_task == -1){
+
+					if(timestep != 0){
+						energy_consumed = (double)time_taken * ((double)cpu_power[4] * 0.001);
+						total_idle_time += time_taken;
+						total_energy_consumed += energy_consumed;
+						if(print_results) printf(" %8d %8.4lfJ\n", timestep-1, energy_consumed);
+					}
+					if(timestep+1 != sys_time){
+						if(print_results) printf("%8d %8s %8s", timestep, "IDLE", "IDLE");
+					}
+				}
+				else{
+					if (timestep != 0){
+						energy_consumed = (double)time_taken * ((double)cpu_power[task_mask[new_active_task]] * 0.001);
+						total_energy_consumed += energy_consumed;
+						if(print_results) printf(" %8d %8.4lfJ\n", timestep-1, energy_consumed);
+
+					}
+					if(timestep+1 != sys_time){
+						if(print_results) printf("%8d %8s %8d", timestep, tasks[new_active_task].name, frequencies[task_mask[new_active_task]]);
+					}
+
+				}
+				last_change_time = timestep;
+				active_task = new_active_task;
 			}
 		}
-		if(new_active_task != active_task){
-			// Compute Energy Consumed
-			int time_taken = timestep - last_change_time;
 
-			if(new_active_task == -1){
-
-				if(timestep != 0){
-					energy_consumed = (double)time_taken * ((double)cpu_power[4] * 0.001);
-					total_idle_time += time_taken;
-					total_energy_consumed += energy_consumed;
-					if(print_results) printf(" %8d %8.4lfJ\n", timestep-1, energy_consumed);
-				}
-				if(timestep+1 != sys_time){
-					if(print_results) printf("%8d %8s %8s", timestep, "IDLE", "IDLE");
-				}
-			}
-			else{
-				if (timestep != 0){
-					energy_consumed = (double)time_taken * ((double)cpu_power[task_mask[new_active_task]] * 0.001);
-					total_energy_consumed += energy_consumed;
-					if(print_results) printf(" %8d %8.4lfJ\n", timestep-1, energy_consumed);
-
-				}
-				if(timestep+1 != sys_time){
-					if(print_results) printf("%8d %8s %8d", timestep, tasks[new_active_task].name, frequencies[task_mask[new_active_task]]);
-				}
-
-			}
-			last_change_time = timestep;
-
-		}
-		active_task = new_active_task;
-		remaining_computation[active_task]--;	
+		if(active_task != -1) remaining_computation[active_task]--;	
 	}
 	int time_taken = sys_time - last_change_time;
-	if(new_active_task != -1){
+	if(active_task != -1){
 		energy_consumed = (double)time_taken * ((double)cpu_power[task_mask[new_active_task]] * 0.001);
 		if(print_results) printf(" %8d %8.4lfJ\n", sys_time, energy_consumed);
 	}
@@ -167,8 +170,9 @@ float generate_edf_schedule(
 {
 	const int frequencies[4] = {1188, 918, 648, 384};
 	
-	if(print_results) printf("Scheduling %d tasks using EDF\n", num_tasks);
-	// const double rm_constant = (double)num_tasks * (pow(2, 1.0/(double)num_tasks)-1);
+	if(print_results) {
+		printf("Scheduling %d tasks using EDF\n", num_tasks);
+	}
 	double task_utilization = 0.0;
 	for(int i = 0; i < num_tasks; i++){
 		task_utilization += ((double)tasks[i].wcet[task_mask[i]] / (double)tasks[i].period);
@@ -177,22 +181,15 @@ float generate_edf_schedule(
 		if(print_results) printf("Tasks not schedulable using EDF... Utiliztation %0.4lf > 1\n", task_utilization);
 		return -1;
 	}
-	// else if (task_utilization > rm_constant){
-	// 	if(print_results) printf("Tasks not necessarily schedulable using RM... %0.4lf > %0.4lf\n", task_utilization, rm_constant);
-	// }
-	// else{
-	// 	if(print_results) printf("RM Inequality: %0.4lf <= %0.4lf\n", task_utilization, rm_constant);
-	// }
 
 	int remaining_computation[num_tasks], next_deadline[num_tasks];
-	int active_task, new_active_task = -1;
+	int active_task = -1, new_active_task = -1;
 	double energy_consumed = 0;
 	double total_energy_consumed = 0;
 	int last_change_time, total_idle_time = 0;
 	if(print_results) printf("%8s %8s %8s %8s %8s\n", "START", "NAME", "FREQ", "END", "POWER");
 	for(int i = 0; i < num_tasks; i++){next_deadline[i] = tasks[i].period;}
 	for(int timestep = 0; timestep < sys_time; timestep++){
-
 		// Check for missed deadlines
 		for(int i = 0; i < num_tasks; i++){
 			if(timestep != 0 && timestep % tasks[i].period == 0 && remaining_computation[i] > 0){
@@ -201,60 +198,67 @@ float generate_edf_schedule(
 			}
 		}
 
+		int scheduling_flag = 0;
 		// Restart tasks as they come in.
 		for(int i = 0; i < num_tasks; i++){
 			if(timestep % tasks[i].period == 0){
 				remaining_computation[i] = tasks[i].wcet[task_mask[i]];
 				next_deadline[i] = timestep + tasks[i].period;  
+				scheduling_flag = 1;
 			}
 		}
+		if(active_task != -1 && remaining_computation[active_task] == 0){
+			scheduling_flag = 1;
+		}
 
-		// Select current active task
-		new_active_task = -1;
-		for(int i = 0; i < num_tasks; i++){
-			if(new_active_task == -1 && remaining_computation[i] > 0){
-				new_active_task = i;
+		// Only check the scheduler if necessary
+		if(scheduling_flag){
+			// Select current active task
+			new_active_task = -1;
+			for(int i = 0; i < num_tasks; i++){
+				if(new_active_task == -1 && remaining_computation[i] > 0){
+					new_active_task = i;
+				}
+				else if(remaining_computation[i] > 0 && next_deadline[i] < next_deadline[new_active_task]){
+					new_active_task = i;
+				}
 			}
-			else if(remaining_computation[i] > 0 && next_deadline[i] < next_deadline[new_active_task]){
-				new_active_task = i;
+			if(new_active_task != active_task){
+				// Compute Energy Consumed
+				int time_taken = timestep - last_change_time;
+
+				if(new_active_task == -1){
+
+					if(timestep != 0){
+						energy_consumed = (double)time_taken * ((double)cpu_power[4] * 0.001);
+						total_energy_consumed += energy_consumed;
+						total_idle_time += time_taken;
+						if(print_results) printf(" %8d %8.4lfJ\n", timestep-1, energy_consumed);
+					}
+					if(timestep+1 != sys_time){
+						if(print_results) printf("%8d %8s %8s", timestep, "IDLE", "IDLE");
+					}
+				}
+				else{
+					if (timestep != 0){
+						energy_consumed = (double)time_taken * ((double)cpu_power[task_mask[new_active_task]] * 0.001);
+						total_energy_consumed += energy_consumed;
+						if(print_results) printf(" %8d %8.4lfJ\n", timestep-1, energy_consumed);
+
+					}
+					if(timestep+1 != sys_time){
+						if(print_results) printf("%8d %8s %8d", timestep, tasks[new_active_task].name, frequencies[task_mask[new_active_task]]);
+					}
+
+				}
+				last_change_time = timestep;
+				active_task = new_active_task;
 			}
 		}
-		if(new_active_task != active_task){
-			// Compute Energy Consumed
-			int time_taken = timestep - last_change_time;
-
-			if(new_active_task == -1){
-
-				if(timestep != 0){
-					energy_consumed = (double)time_taken * ((double)cpu_power[4] * 0.001);
-					total_energy_consumed += energy_consumed;
-					total_idle_time += time_taken;
-					if(print_results) printf(" %8d %8.4lfJ\n", timestep-1, energy_consumed);
-				}
-				if(timestep+1 != sys_time){
-					if(print_results) printf("%8d %8s %8s", timestep, "IDLE", "IDLE");
-				}
-			}
-			else{
-				if (timestep != 0){
-					energy_consumed = (double)time_taken * ((double)cpu_power[task_mask[new_active_task]] * 0.001);
-					total_energy_consumed += energy_consumed;
-					if(print_results) printf(" %8d %8.4lfJ\n", timestep-1, energy_consumed);
-
-				}
-				if(timestep+1 != sys_time){
-					if(print_results) printf("%8d %8s %8d", timestep, tasks[new_active_task].name, frequencies[task_mask[new_active_task]]);
-				}
-
-			}
-			last_change_time = timestep;
-
-		}
-		active_task = new_active_task;
-		remaining_computation[active_task]--;	
+		if (active_task != -1) remaining_computation[active_task]--;	
 	}
 	int time_taken = sys_time - last_change_time;
-	if(new_active_task != -1){
+	if(active_task != -1){
 		energy_consumed = (double)time_taken * ((double)cpu_power[task_mask[new_active_task]] * 0.001);
 		if(print_results) printf(" %8d %8.4lfJ\n", sys_time, energy_consumed);
 	}
@@ -312,8 +316,9 @@ int generate_ee_schedule_helper(
 				// Check for power savings
 				if(cpu_power[freq] * tasks[task_pointer].wcet[freq]*0.001 <= base_power){
 					task_mask[task_pointer] = freq;
-					if(rm_flag) result = generate_rm_schedule(num_tasks, sys_time, tasks, task_mask, cpu_power, 0);
-					else result = generate_edf_schedule(num_tasks, sys_time, tasks, task_mask, cpu_power, 0);
+					if(rm_flag) {result = generate_rm_schedule(num_tasks, sys_time, tasks, task_mask, cpu_power, 0);}
+					else {result = generate_edf_schedule(num_tasks, sys_time, tasks, task_mask, cpu_power, 0);}
+					
 					*num_checked = *num_checked + 1;
 					if(result != -1 && result < *best_power){
 						*best_power = result;
