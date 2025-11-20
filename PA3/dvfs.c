@@ -54,19 +54,17 @@ float generate_rm_schedule(
 	for(int timestep = 0; timestep < sys_time; timestep++){
 
 		// Check for missed deadlines
-		for(int i = 0; i < num_tasks; i++){
-			if(timestep != 0 && timestep % tasks[i].period == 0 && remaining_computation[i] > 0){
-				if(print_results) printf("%d Missed their deadline. Scheduling Failed on timestep %d...\n", i, timestep);
-				return -1;
-			}
-		}
-
 		int scheduling_flag = 0;
-		// Restart tasks as they come in.
 		for(int i = 0; i < num_tasks; i++){
 			if(timestep % tasks[i].period == 0){
-				remaining_computation[i] = tasks[i].wcet[task_mask[i]];
-				scheduling_flag = 1;
+				if(timestep != 0 && remaining_computation[i] > 0){
+					if(print_results) printf("%d Missed their deadline. Scheduling Failed on timestep %d...\n", i, timestep);
+					return -1;
+				}
+				else {
+					remaining_computation[i] = tasks[i].wcet[task_mask[i]];
+					scheduling_flag = 1;
+				}
 			}
 		}
 
@@ -185,22 +183,20 @@ float generate_edf_schedule(
 	for(int i = 0; i < num_tasks; i++){next_deadline[i] = tasks[i].period;}
 	for(int timestep = 0; timestep < sys_time; timestep++){
 		// Check for missed deadlines
-		for(int i = 0; i < num_tasks; i++){
-			if(timestep != 0 && timestep % tasks[i].period == 0 && remaining_computation[i] > 0){
-				if(print_results) printf("\n%d Missed their deadline. Scheduling Failed on timestep %d...\n", i, timestep);
-				return -1;
-			}
-		}
-
 		int scheduling_flag = 0;
-		// Restart tasks as they come in.
 		for(int i = 0; i < num_tasks; i++){
 			if(timestep % tasks[i].period == 0){
-				remaining_computation[i] = tasks[i].wcet[task_mask[i]];
-				next_deadline[i] = timestep + tasks[i].period;  
-				scheduling_flag = 1;
+				if(timestep != 0 && remaining_computation[i] > 0){
+					if(print_results) printf("%d Missed their deadline. Scheduling Failed on timestep %d...\n", i, timestep);
+					return -1;
+				}
+				else {
+					remaining_computation[i] = tasks[i].wcet[task_mask[i]];
+					scheduling_flag = 1;
+				}
 			}
 		}
+		
 		if(active_task != -1 && remaining_computation[active_task] == 0){
 			scheduling_flag = 1;
 		}
