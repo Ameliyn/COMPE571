@@ -91,7 +91,7 @@ float generate_rm_schedule(
 			// Select current active task
 			new_active_task = -1;
 			for(int i = 0; i < num_tasks; i++){
-				if(new_active_task == -1){
+				if(remaining_computation[i] > 0 && new_active_task == -1){
 					new_active_task = i;
 				}
 				else if(remaining_computation[i] > 0 && tasks[new_active_task].period > tasks[i].period){
@@ -136,17 +136,18 @@ float generate_rm_schedule(
 	int time_taken = sys_time - last_change_time;
 	if(active_task != -1){
 		energy_consumed = (double)time_taken * ((double)cpu_power[task_mask[new_active_task]] * 0.001);
-		if(print_results) printf(" %8d %8.4lfJ\n", sys_time, energy_consumed);
+		if(print_results) printf(" %8d %8.4lfJ\n", time_taken, energy_consumed);
 	}
 	else{
 		total_idle_time += time_taken;
 		energy_consumed = (double)time_taken * ((double)cpu_power[4] * 0.001);
-		if(print_results) printf(" %8d %8.4lfJ\n", sys_time, energy_consumed);
+		if(print_results) printf(" %8d %8.4lfJ\n", time_taken, energy_consumed);
 	}
 	total_energy_consumed += energy_consumed;
 	if(print_results) {
 		printf("Total Energy Consumed: %8.4lfJ\n", total_energy_consumed);
 		printf("Total Idle time: %d seconds (%4.4f%%)\n", total_idle_time, (double)total_idle_time / (double) sys_time);
+		printf("Total Execution Time: %d seconds\n",sys_time - total_idle_time);
 	}
 
 	return total_energy_consumed;
@@ -289,6 +290,8 @@ float generate_edf_schedule(
 	if(print_results) {
 		printf("Total Energy Consumed: %8.4lfJ\n", total_energy_consumed);
 		printf("Total Idle time: %d seconds (%4.4f%%)\n", total_idle_time, (double)total_idle_time / (double) sys_time);
+		printf("Total Execution Time: %d seconds\n",sys_time - total_idle_time);
+
 	}
 
 	return total_energy_consumed;

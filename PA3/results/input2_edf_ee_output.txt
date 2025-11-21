@@ -32,3 +32,4 @@ Scheduling 5 tasks using EDF
      947       w5      648       53  16.2710J
 Total Energy Consumed: 374.9520J
 Total Idle time: 0 seconds (0.0000%)
+Total Execution Time: 1000 seconds
