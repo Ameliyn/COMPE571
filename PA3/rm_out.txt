@@ -1,0 +1,31 @@
+Analyzing input1.txt and scheduling with RM (Energy Efficient: 0)
+Num_tasks: 5 over 1000 seconds.
+CPU Power Costs:
+  1188:  625mW
+  918 :  447mW
+  648 :  307mW
+  384 :  212mW
+  idle:   84mW
+Tasks:     Name Period 1188  918  648  384
+            w1    520    53   66   89  141
+            w2    220    40   50   67  114
+            w3    500   104  134  184  313
+            w4    200    57   74  103  175
+            w5    300    35   45   62  104
+Scheduling 5 tasks using RM
+   START     NAME     FREQ      END    POWER
+       0       w4     1188       57  35.6250J
+      57       w2     1188       40  25.0000J
+      97       w5     1188       35  21.8750J
+     132       w3     1188       68  42.5000J
+     200       w4     1188       57  35.6250J
+     257       w2     1188       40  25.0000J
+     297       w3     1188        3   1.8750J
+     300       w5     1188       35  21.8750J
+     335       w3     1188       33  20.6250J
+     368       w1     1188       32  20.0000J
+     400       w4     1188       57  35.6250J
+     457       w2     1188       40  25.0000J
+     497       w1     1188        3   1.8750J
+     500       w3     1188       20   6.1400J
+w1 Missed their deadline. Scheduling Failed on timestep 520...
