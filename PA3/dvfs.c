@@ -56,7 +56,19 @@ float generate_rm_schedule(
 		// Check for missed deadlines
 		for(int i = 0; i < num_tasks; i++){
 			if(timestep != 0 && timestep % tasks[i].period == 0 && remaining_computation[i] > 0){
-				if(print_results) printf("%d Missed their deadline. Scheduling Failed on timestep %d...\n", i, timestep);
+				if(print_results) {
+					int time_taken = timestep - last_change_time;
+					if(active_task == -1){
+						energy_consumed = (double)time_taken * ((double)cpu_power[4] * 0.001);
+					}
+					else{
+						energy_consumed = (double)time_taken * ((double)cpu_power[active_task] * 0.001);
+					}
+					total_idle_time += time_taken;
+					total_energy_consumed += energy_consumed;
+					printf(" %8d %8.4lfJ\n", time_taken, energy_consumed);
+					printf("%s Missed their deadline. Scheduling Failed on timestep %d...\n", tasks[i].name, timestep);
+				}
 				return -1;
 			}
 		}
@@ -79,10 +91,10 @@ float generate_rm_schedule(
 			// Select current active task
 			new_active_task = -1;
 			for(int i = 0; i < num_tasks; i++){
-				if(new_active_task == -1 && remaining_computation[i] > 0){
+				if(new_active_task == -1){
 					new_active_task = i;
 				}
-				else if(remaining_computation[i] > 0 && remaining_computation[new_active_task] > remaining_computation[i]){
+				else if(remaining_computation[i] > 0 && tasks[new_active_task].period > tasks[i].period){
 					new_active_task = i;
 				}
 			}
@@ -96,7 +108,7 @@ float generate_rm_schedule(
 						energy_consumed = (double)time_taken * ((double)cpu_power[4] * 0.001);
 						total_idle_time += time_taken;
 						total_energy_consumed += energy_consumed;
-						if(print_results) printf(" %8d %8.4lfJ\n", timestep-1, energy_consumed);
+						if(print_results) printf(" %8d %8.4lfJ\n", time_taken, energy_consumed);
 					}
 					if(timestep+1 != sys_time){
 						if(print_results) printf("%8d %8s %8s", timestep, "IDLE", "IDLE");
@@ -106,7 +118,7 @@ float generate_rm_schedule(
 					if (timestep != 0){
 						energy_consumed = (double)time_taken * ((double)cpu_power[task_mask[new_active_task]] * 0.001);
 						total_energy_consumed += energy_consumed;
-						if(print_results) printf(" %8d %8.4lfJ\n", timestep-1, energy_consumed);
+						if(print_results) printf(" %8d %8.4lfJ\n", time_taken, energy_consumed);
 
 					}
 					if(timestep+1 != sys_time){
@@ -227,7 +239,7 @@ float generate_edf_schedule(
 						energy_consumed = (double)time_taken * ((double)cpu_power[4] * 0.001);
 						total_energy_consumed += energy_consumed;
 						total_idle_time += time_taken;
-						if(print_results) printf(" %8d %8.4lfJ\n", timestep-1, energy_consumed);
+						if(print_results) printf(" %8d %8.4lfJ\n", time_taken, energy_consumed);
 					}
 					if(timestep+1 != sys_time){
 						if(print_results) printf("%8d %8s %8s", timestep, "IDLE", "IDLE");
@@ -254,12 +266,12 @@ float generate_edf_schedule(
 	int time_taken = sys_time - last_change_time;
 	if(active_task != -1){
 		energy_consumed = (double)time_taken * ((double)cpu_power[task_mask[new_active_task]] * 0.001);
-		if(print_results) printf(" %8d %8.4lfJ\n", sys_time, energy_consumed);
+		if(print_results) printf(" %8d %8.4lfJ\n", time_taken, energy_consumed);
 	}
 	else{
 		total_idle_time += time_taken;
 		energy_consumed = (double)time_taken * ((double)cpu_power[4] * 0.001);
-		if(print_results) printf(" %8d %8.4lfJ\n", sys_time, energy_consumed);
+		if(print_results) printf(" %8d %8.4lfJ\n", time_taken, energy_consumed);
 	}
 	total_energy_consumed += energy_consumed;
 	if(print_results) {
@@ -365,6 +377,11 @@ int generate_ee_rm_schedule(
 	int num_checked = 0;
 	int error = generate_ee_schedule_helper(num_tasks, sys_time, tasks, cpu_power, 1, 0, task_mask, best_task_mask, &best_power_cost, &num_checked);
 	printf("%d iterations checked!\n", num_checked);
+	if (best_power_cost == 99999999999){
+		printf("No Schedule for task set.\n");
+		for(int task = 0; task < num_tasks; task++){task_mask[task] = 0;}
+		return generate_rm_schedule(num_tasks, sys_time, tasks, task_mask, cpu_power, 1);
+	}
 	return generate_rm_schedule(num_tasks, sys_time, tasks, best_task_mask, cpu_power, 1);
 }
 
