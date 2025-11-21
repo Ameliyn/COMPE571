@@ -1,4 +1,4 @@
-Analyzing input1.txt and scheduling with EDF (Energy Efficient: 1)
+Analyzing input2.txt and scheduling with EDF (Energy Efficient: 1)
 Num_tasks: 5 over 1000 seconds.
 CPU Power Costs:
   1188:  625mW
@@ -8,33 +8,27 @@ CPU Power Costs:
   idle:   84mW
 Tasks:     Name Period 1188  918  648  384
             w1    520    53   66   89  141
-            w2    220    40   50   67  114
+            w2    320    40   50   67  114
             w3    500   104  134  184  313
-            w4    200    57   74  103  175
+            w4    450    57   74  103  175
             w5    300    35   45   62  104
 Checking 4 frequency values each for 5 tasks...
 432 iterations checked!
 Scheduling 5 tasks using EDF
    START     NAME     FREQ      END    POWER
-       0       w4     1188       56  25.4790J
-      57       w2      918      106  22.3500J
-     107       w5      918      151  28.1250J
-     152       w3     1188      199  30.0000J
-     200       w4     1188      256  25.4790J
-     257       w2      918      306  31.2500J
-     307       w3     1188      362  25.0320J
-     363       w1      918      428  41.2500J
-     429       w4     1188      485  25.4790J
-     486       w5      918      530  20.1150J
-     531       w2      918      580  31.2500J
-     581       w3     1188      599  11.8750J
-     600       w4     1188      656  25.4790J
-     657       w5      918      659   1.3410J
-     660       w2      918      709  22.3500J
-     710       w5      918      751  26.2500J
-     752       w3     1188      836  53.1250J
-     837       w4     1188      893  25.4790J
-     894       w1      918      959  29.5020J
-     960       w2      918     1000  17.8800J
-Total Energy Consumed: 519.0900J
+       0       w5      648       61  19.0340J
+      62       w2      648      128  41.8750J
+     129       w4     1188      185  25.4790J
+     186       w3      918      319  41.1380J
+     320       w1      648      408  27.3230J
+     409       w5      648      470  19.0340J
+     471       w2      648      537  41.8750J
+     538       w4     1188      594  25.4790J
+     595       w3      918      599   1.5350J
+     600       w5      648      661  19.0340J
+     662       w2      648      728  29.9490J
+     729       w3      918      857  39.6030J
+     858       w1      648      946  27.3230J
+     947       w5      648       53  16.2710J
+Total Energy Consumed: 374.9520J
 Total Idle time: 0 seconds (0.0000%)

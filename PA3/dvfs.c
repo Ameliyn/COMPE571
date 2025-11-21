@@ -199,7 +199,19 @@ float generate_edf_schedule(
 		// Check for missed deadlines
 		for(int i = 0; i < num_tasks; i++){
 			if(timestep != 0 && timestep % tasks[i].period == 0 && remaining_computation[i] > 0){
-				if(print_results) printf("\n%d Missed their deadline. Scheduling Failed on timestep %d...\n", i, timestep);
+				if(print_results) {
+					int time_taken = timestep - last_change_time;
+					if(active_task == -1){
+						energy_consumed = (double)time_taken * ((double)cpu_power[4] * 0.001);
+					}
+					else{
+						energy_consumed = (double)time_taken * ((double)cpu_power[active_task] * 0.001);
+					}
+					total_idle_time += time_taken;
+					total_energy_consumed += energy_consumed;
+					printf(" %8d %8.4lfJ\n", time_taken, energy_consumed);
+					printf("%s Missed their deadline. Scheduling Failed on timestep %d...\n", tasks[i].name, timestep);
+				}
 				return -1;
 			}
 		}
