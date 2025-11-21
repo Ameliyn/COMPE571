@@ -34,4 +34,4 @@ codegen/
 
 # buildtool cache folder
 .buildtool/
-
+.vscode
