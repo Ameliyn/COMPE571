@@ -262,7 +262,7 @@ float generate_edf_schedule(
 					if (timestep != 0){
 						energy_consumed = (double)time_taken * ((double)cpu_power[task_mask[new_active_task]] * 0.001);
 						total_energy_consumed += energy_consumed;
-						if(print_results) printf(" %8d %8.4lfJ\n", timestep-1, energy_consumed);
+						if(print_results) printf(" %8d %8.4lfJ\n", time_taken, energy_consumed);
 
 					}
 					if(timestep+1 != sys_time){
