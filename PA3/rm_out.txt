@@ -1,4 +1,4 @@
-Analyzing input2.txt and scheduling with RM (Energy Efficient: 0)
+Analyzing input1.txt and scheduling with RM (Energy Efficient: 0)
 Num_tasks: 5 over 1000 seconds.
 CPU Power Costs:
   1188:  625mW
@@ -8,29 +8,24 @@ CPU Power Costs:
   idle:   84mW
 Tasks:     Name Period 1188  918  648  384
             w1    520    53   66   89  141
-            w2    320    40   50   67  114
+            w2    220    40   50   67  114
             w3    500   104  134  184  313
-            w4    450    57   74  103  175
+            w4    200    57   74  103  175
             w5    300    35   45   62  104
 Scheduling 5 tasks using RM
    START     NAME     FREQ      END    POWER
-       0       w5     1188       35  21.8750J
-      35       w2     1188       40  25.0000J
-      75       w4     1188       57  35.6250J
-     132       w3     1188      104  65.0000J
-     236       w1     1188       64  40.0000J
+       0       w4     1188       57  35.6250J
+      57       w2     1188       40  25.0000J
+      97       w5     1188       35  21.8750J
+     132       w3     1188       68  42.5000J
+     200       w4     1188       57  35.6250J
+     257       w2     1188       40  25.0000J
+     297       w3     1188        3   1.8750J
      300       w5     1188       35  21.8750J
-     335       w2     1188       40  25.0000J
-     375       w1     1188       75  46.8750J
-     450       w4     1188       57  35.6250J
-     507       w3     1188       93  58.1250J
-     600       w5     1188       35  21.8750J
-     635       w3     1188        5   3.1250J
-     640       w2     1188       40  25.0000J
-     680       w3     1188        6   3.7500J
-     686       w1     1188      214 133.7500J
-     900       w5     1188       35  21.8750J
-     935       w4     1188       25  15.6250J
-     960       w2     1188     1000  25.0000J
-Total Energy Consumed: 625.0000J
-Total Idle time: 0 seconds (0.0000%)
+     335       w3     1188       33  20.6250J
+     368       w1     1188       32  20.0000J
+     400       w4     1188       57  35.6250J
+     457       w2     1188       40  25.0000J
+     497       w1     1188        3   1.8750J
+     500       w3     1188       20   6.1400J
+w1 Missed their deadline. Scheduling Failed on timestep 520...
