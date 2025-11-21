@@ -38,3 +38,4 @@ Scheduling 5 tasks using EDF
      960       w2      918       40  17.8800J
 Total Energy Consumed: 519.0900J
 Total Idle time: 0 seconds (0.0000%)
+Total Execution Time: 1000 seconds

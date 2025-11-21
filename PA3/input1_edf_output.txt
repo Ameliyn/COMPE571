@@ -41,3 +41,4 @@ Scheduling 5 tasks using EDF
      955     IDLE     IDLE       45   3.7800J
 Total Energy Consumed: 577.9330J
 Total Idle time: 87 seconds (0.0870%)
+Total Execution Time: 913 seconds
