@@ -7,11 +7,8 @@ dvfs.o -- Precompiled C File (compiled and tested on Ubuntu 24.04)
 input1.txt -- Example task list 1
 input2.txt -- Example task list 2
 README.md -- YOU ARE HERE
-edf_out.txt -- Example output from executing `./dvfs.o input1.txt EDF EE >> edf_out.txt`
-edf_ee_out.txt -- Example output from executing `./dvfs.o input1.txt EDF EE >> edf_ee_out.txt`
-rm_out.txt -- Example output from executing `./dvfs.o input1.txt EDF EE >> rm_out.txt`
-rm_ee_out.txt -- Example output from executing `./dvfs.o input1.txt EDF EE >> rm_ee_out.txt`
-PA3_REPORT_SKYERUSS.pdf -- Writeup Report
+COMPE571PA3SkyeRussReport.pdf -- Writeup Report
+results/ -- Directory with results for `./dvfs.o ALL_INPUTS ALL_ALGORITHMS`
 
 ## How to use this repository (Compilation and Execution)
 
