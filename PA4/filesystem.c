@@ -167,6 +167,7 @@ int main(int argc, char const *argv[])
         if(strcmp(replace_algo, "PER") == 0 && time_unit % 200 == 0){
             for(int i = 0; i < NUM_PAGES; i++){
                 pages[i].reference_bit = 0;
+                pages[i].last_used_time_unit = 99999;
             }
         }
 
